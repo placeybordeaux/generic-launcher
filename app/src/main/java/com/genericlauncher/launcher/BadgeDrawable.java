@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
  * which makes badge animation start and stop automatically — and, because the animator holds
  * callbacks weakly, leak-free even if a host view never detaches cleanly.
  */
-public class BadgeDrawable extends Drawable {
+public class BadgeDrawable extends Drawable implements Drawable.Callback {
 
     @Nullable private final Drawable base;
     private final BadgePainter painter;
@@ -63,6 +63,9 @@ public class BadgeDrawable extends Drawable {
                          @NonNull BadgeConfig config, int seamFill,
                          float badgeOnlyIconPx) {
         this.base = base;
+        // So a base that animates itself (a Personality.ICON treatment, e.g. Lived-in's dust
+        // puff) reaches the view: the host only redraws for the drawable it holds, which is us.
+        if (base != null) base.setCallback(this);
         this.config = config;
         this.painter = new BadgePainter(density, config.size);
         this.count = count;
@@ -167,6 +170,21 @@ public class BadgeDrawable extends Drawable {
     @Override
     public void setColorFilter(@Nullable ColorFilter cf) {
         if (base != null) base.setColorFilter(cf);
+    }
+
+    @Override
+    public void invalidateDrawable(@NonNull Drawable who) {
+        invalidateSelf();
+    }
+
+    @Override
+    public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {
+        scheduleSelf(what, when);
+    }
+
+    @Override
+    public void unscheduleDrawable(@NonNull Drawable who, @NonNull Runnable what) {
+        unscheduleSelf(what);
     }
 
     @Override

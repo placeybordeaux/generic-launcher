@@ -1234,8 +1234,9 @@ public class HomescreenView extends FrameLayout {
         // Wrap the icon with a notification count badge overlay.
         int count = badgeCountFor(item.getPackageName());
         float density = getResources().getDisplayMetrics().density;
-        BadgeDrawable badge = newBadgeDrawable(info.getIcon(), density, count,
-                info.getPackageName());
+        BadgeDrawable badge = newBadgeDrawable(
+                Personality.ICON.treat(getContext(), info.getIcon(), info.getPackageName()),
+                density, count, info.getPackageName());
         badgeBindings.add(new BadgeBinding(item, badge));
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(badge);
@@ -1412,8 +1413,9 @@ public class HomescreenView extends FrameLayout {
         // Notification count badge.
         int count = badgeCountFor(item.getPackageName());
         float density = getResources().getDisplayMetrics().density;
-        BadgeDrawable badge = newBadgeDrawable(info.getIcon(), density, count,
-                info.getPackageName());
+        BadgeDrawable badge = newBadgeDrawable(
+                Personality.ICON.treat(getContext(), info.getIcon(), info.getPackageName()),
+                density, count, info.getPackageName());
         badgeBindings.add(new BadgeBinding(item, badge));
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(badge);
@@ -3279,8 +3281,9 @@ public class HomescreenView extends FrameLayout {
         // two members are notified. That is what the binding's memberPkg carries.
         int count = badgeCountFor(pkg);
         float density = getResources().getDisplayMetrics().density;
-        BadgeDrawable badge = newBadgeDrawable(info.getIcon(), density, count,
-                info.getPackageName());
+        BadgeDrawable badge = newBadgeDrawable(
+                Personality.ICON.treat(getContext(), info.getIcon(), info.getPackageName()),
+                density, count, info.getPackageName());
         popupBadgeBindings.add(new BadgeBinding(folder, pkg, badge));
 
         ImageView icon = new ImageView(getContext());

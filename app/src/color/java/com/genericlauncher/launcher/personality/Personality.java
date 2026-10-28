@@ -41,7 +41,13 @@ public final class Personality {
      * filling a side table keyed by app. Without this hook a colour personality is unwritable
      * behind the seam — {@link DrawerApp} has no icon, by design.
      */
-    public static final AppDataSink DATA = ColorPersonality.DATA;
+    public static final AppDataSink DATA = (context, apps) -> {
+        ColorPersonality.DATA.onAppsLoaded(context, apps);
+        com.genericlauncher.launcher.livedin.LivedIn.DATA.onAppsLoaded(context, apps);
+    };
+
+    /** Lived-in ages the colour build's icons too; see LIVEDIN.md. */
+    public static final IconTreatment ICON = com.genericlauncher.launcher.livedin.LivedIn.TREATMENT;
 
     private Personality() {}
 }

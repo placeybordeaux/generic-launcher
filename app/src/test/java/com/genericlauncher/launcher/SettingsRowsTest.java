@@ -42,7 +42,7 @@ public class SettingsRowsTest {
         for (SettingsRows.Row r : SettingsRows.build(ctx(), false)) {
             if (r.type == SettingsRows.Type.HEADER) headers.append(r.title).append('|');
         }
-        assertEquals("APPEARANCE|NOTIFICATION BADGES|WIDGETS|BACKUP|TROUBLESHOOTING|",
+        assertEquals("APPEARANCE|LIVED-IN|NOTIFICATION BADGES|WIDGETS|BACKUP|TROUBLESHOOTING|",
                 headers.toString());
     }
 

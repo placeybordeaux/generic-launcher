@@ -141,6 +141,12 @@ public class SettingsActivity extends AppCompatActivity {
             case "home_grid":          showHomeGridDialog();     break;
             case "notif_dots":         toggleNotifDots();        break;
             case "badge_style":        showBadgeStyleDialog();   break;
+            case "livedin_variant":    showLivedInVariantDialog(); break;
+            case "livedin_style":      showLivedInStyleDialog(); break;
+            case "livedin_usage_access":
+                UsageStatsHelper.openUsageAccessSettings(this);
+                break;
+            case "livedin_forget":     confirmForgetUsage();     break;
             case "badge_size":         showBadgeSizeDialog();    break;
             case "badge_shimmer":
                 Settings.setBadgeShimmer(this, !Settings.getBadgeShimmer(this));
@@ -162,6 +168,21 @@ public class SettingsActivity extends AppCompatActivity {
             case "reset_home":         resetHomeScreenToDefaults(); break;
             default: break;
         }
+    }
+
+    /** The launch log cannot be recovered once cleared, and the row sits one tap from the others. */
+    private void confirmForgetUsage() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Forget usage?")
+                .setMessage("Every icon's wear, dust and cobwebs start over from today. "
+                        + "The launches recorded so far can't be brought back.")
+                .setPositiveButton("Forget", (d, w) -> {
+                    com.genericlauncher.launcher.livedin.LivedIn.forgetUsage(this);
+                    Toast.makeText(this, "Every icon starts fresh from today",
+                            Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void requestDefaultLauncher() {
@@ -347,6 +368,40 @@ public class SettingsActivity extends AppCompatActivity {
                 .setSingleChoiceItems(BadgeStyle.labels(),
                         Settings.getBadgeStyle(this).ordinal(), (dialog, which) -> {
                             Settings.setBadgeStyle(this, styles[which]);
+                            dialog.dismiss();
+                            rebuild();
+                        })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showLivedInVariantDialog() {
+        com.genericlauncher.launcher.livedin.Wear.Variant[] all =
+                com.genericlauncher.launcher.livedin.Wear.Variant.values();
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Icons age with use")
+                .setSingleChoiceItems(com.genericlauncher.launcher.livedin.Wear.Variant.labels(),
+                        com.genericlauncher.launcher.livedin.LivedIn.getVariant(this).ordinal(),
+                        (dialog, which) -> {
+                            com.genericlauncher.launcher.livedin.LivedIn.setVariant(
+                                    this, all[which]);
+                            dialog.dismiss();
+                            rebuild();
+                        })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showLivedInStyleDialog() {
+        com.genericlauncher.launcher.livedin.Wear.Style[] all =
+                com.genericlauncher.launcher.livedin.Wear.Style.values();
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Wear style")
+                .setSingleChoiceItems(com.genericlauncher.launcher.livedin.Wear.Style.labels(),
+                        com.genericlauncher.launcher.livedin.LivedIn.getStyle(this).ordinal(),
+                        (dialog, which) -> {
+                            com.genericlauncher.launcher.livedin.LivedIn.setStyle(
+                                    this, all[which]);
                             dialog.dismiss();
                             rebuild();
                         })

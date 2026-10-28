@@ -4,6 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
+import com.genericlauncher.launcher.livedin.LivedIn;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +78,23 @@ public final class SettingsRows {
                 enabledViewsSummary(c), false));
         rows.add(new Row(Type.NAV, "home_grid", "Home grid",
                 Settings.getGridCols(c) + " × " + Settings.getGridRows(c), false));
+
+        rows.add(new Row(Type.HEADER, "h_livedin", "LIVED-IN", null, false));
+        rows.add(new Row(Type.NAV, "livedin_variant", "Icons age with use",
+                shortLabel(LivedIn.getVariant(c).label), false));
+        rows.add(new Row(Type.NAV, "livedin_style", "Wear style",
+                shortLabel(LivedIn.getStyle(c).label), false));
+        // Without Usage access the launcher only sees launches it made itself; nothing else in
+        // the app asks for the grant, so this row is the only way a user learns it exists.
+        boolean usageAccess = UsageStatsHelper.hasAccess(c);
+        rows.add(new Row(Type.NAV, "livedin_usage_access",
+                usageAccess ? "Usage history: on" : "Use Android's usage history",
+                usageAccess
+                        ? "Time spent in apps counts toward wear, wherever you opened them"
+                        : "Count apps opened from anywhere, not just here — needs Usage access",
+                false));
+        rows.add(new Row(Type.ACTION, "livedin_forget", "Forget usage",
+                "Start every icon's history over from today", false));
 
         rows.add(new Row(Type.HEADER, "h_badges", "NOTIFICATION BADGES", null, false));
         rows.add(new Row(Type.TOGGLE, "notif_dots", "Badges",

@@ -1,5 +1,6 @@
 package com.genericlauncher.launcher.personality;
 
+import com.genericlauncher.launcher.livedin.LivedIn;
 import com.genericlauncher.launcher.personality.strategy.AlphabeticalStrategy;
 
 /**
@@ -48,10 +49,17 @@ public final class Personality {
     public static final BadgeAppearance BADGE = BadgeAppearance.RED;
 
     /**
-     * Per-app data this personality derives for itself when apps load. Default: none — the
-     * taste-free drawer needs nothing the launcher does not already hand it.
+     * Per-app data this personality derives for itself when apps load. The taste-free default is
+     * {@link AppDataSink#NONE}; on the Lived-in branch it gathers each app's install time (so a
+     * newly installed app is not instantly dusty) and Usage Access foreground time.
      */
-    public static final AppDataSink DATA = AppDataSink.NONE;
+    public static final AppDataSink DATA = LivedIn.DATA;
+
+    /**
+     * How every app icon looks, on every surface, and what hears about launches. The taste-free
+     * default is {@link IconTreatment#NONE}; this branch ages icons with use — see LIVEDIN.md.
+     */
+    public static final IconTreatment ICON = LivedIn.TREATMENT;
 
     private Personality() {}
 }

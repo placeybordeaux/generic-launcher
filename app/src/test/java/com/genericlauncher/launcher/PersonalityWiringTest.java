@@ -40,6 +40,7 @@ public class PersonalityWiringTest {
         assertNotNull("Personality.DECORATOR", Personality.DECORATOR);
         assertNotNull("Personality.BADGE", Personality.BADGE);
         assertNotNull("Personality.DATA", Personality.DATA);
+        assertNotNull("Personality.ICON", Personality.ICON);
     }
 
     @Test

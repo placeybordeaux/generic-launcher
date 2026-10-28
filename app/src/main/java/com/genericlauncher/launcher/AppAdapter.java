@@ -179,7 +179,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // 0f: badgeOnlyIconPx is only consulted for the badge-only (base == null) overlay;
             // app.getIcon() is never null here, so it's ignored.
             avh.icon.setImageDrawable(new BadgeDrawable(
-                    app.getIcon(), density, count, BadgeConfig.from(context),
+                    Personality.ICON.treat(context, app.getIcon(), app.getPackageName()),
+                    density, count, BadgeConfig.from(context),
                     Personality.BADGE.fillColor(app.key(), count), 0f));
             avh.label.setText(app.getLabel());
 
@@ -234,6 +235,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * the icon.
      */
     static void launchApp(Context context, AppInfo app) {
+        Personality.ICON.onLaunched(context, app.getPackageName());
         try {
             if (app.isWork() && app.getComponentName() != null && app.getUser() != null) {
                 LauncherApps la =
@@ -256,6 +258,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      */
     static void launchPackage(Context context, String packageKey) {
         String pkg = UserKeys.packageOf(packageKey);
+        Personality.ICON.onLaunched(context, packageKey);
         try {
             Intent launch = context.getPackageManager().getLaunchIntentForPackage(pkg);
             if (launch != null) context.startActivity(launch);

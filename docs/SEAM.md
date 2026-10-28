@@ -18,6 +18,7 @@ All five are wired through one file — `app/src/<flavour>/java/.../personality/
 | Background | `Background` | app module | `NONE` (wallpaper shows through) | must not intercept touches meant for the grid; no scroll or per-frame hook exists, by design |
 | Badge appearance | `BadgeAppearance` | app module | `RED` (`BadgePalette.RED_FILL`) | flat opaque colour only; count maths stay in `BadgePalette` |
 | Per-app data | `AppDataSink` | app module | `NONE` | **worker thread**; must not throw (an escape is process death, and this is the HOME app); called repeatedly and with partial lists — merge, never replace |
+| Icon look everywhere, and launches | `IconTreatment` | app module | `NONE` (icon unchanged) | main thread, on every bind — cache expensive work; never mutate the shared icon, wrap it; the badge is drawn over the result. Added on the Lived-in branch — see `LIVEDIN.md` |
 
 `DrawerStrategy` is pure Java on purpose: it is the seam most forks change and the one worth
 unit-testing with no device. The others touch `android.*` types (`Canvas`, `Drawable`, `Color`,
@@ -39,7 +40,7 @@ Built from real anchors so you land on the first try instead of grepping.
 | Restyle a drawer cell (tint, monogram, label) | `DrawerItemDecorator` | default no-op |
 | Change the home/drawer background | `Background` | see the colour build's rainbow bg for a live one |
 | Change notification-dot colour/shape | `BadgeAppearance` | default = `BadgePalette.RED_FILL` |
-| Tint/restyle icons **on the home screen** | `HomescreenView.buildAppView` | home draws the raw platform drawable *untinted* — the drawer decorator does **not** reach here |
+| Tint/restyle icons **on the home screen** | `IconTreatment` (every surface) | the drawer decorator does **not** reach the home screen; `IconTreatment` does |
 | Change grid size | `Settings` `home_grid_cols/rows` | already a setting; don't hardcode |
 | Widget min-size behaviour | `HomescreenView.spanForProvider` | the only blessed reader of provider minimums (they're in PIXELS, not dp) |
 | React to a home long-press | add to `cancelPendingWidgetLongPress()` **and** the `downOnWidget` guard | both must agree — a non-interactive widget routes its whole touch stream to `HomescreenView` |
