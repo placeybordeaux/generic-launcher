@@ -31,7 +31,9 @@ android {
     buildToolsVersion "35.0.0"
 
     defaultConfig {
-        applicationId "com.genericlauncher.launcher"
+        // Wobble's own id (this branch only), so it installs beside the generic launcher rather
+        // than over it, and the two can be shown side by side.
+        applicationId "com.genericlauncher.wobble"
         // 29, not 26. UsageStatsHelper.hasAccess calls AppOpsManager.unsafeCheckOpNoThrow, an
         // API 29 method, on every launch — so the app crashed at startup on every Android 8-9
         // device, and nothing noticed: Robolectric is pinned to 33 and the test phone is 36.
@@ -51,7 +53,7 @@ android {
         // the flavour's value is silently discarded, and `colorDebug` installs beside
         // `plainDebug` under the identical name. The flavour owns `appName`, the build type
         // owns `buildTag`, they never collide, and the manifest concatenates them.
-        manifestPlaceholders = [appName: "Launcher", buildTag: ""]
+        manifestPlaceholders = [appName: "Wobble", buildTag: ""]
     }
 
     buildFeatures {
@@ -100,7 +102,7 @@ android {
             dimension "personality"
             applicationIdSuffix ".color"
             versionNameSuffix "-color"
-            manifestPlaceholders = [appName: "Launcher Color"]
+            manifestPlaceholders = [appName: "Wobble Color"]
         }
     }
 

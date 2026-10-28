@@ -187,6 +187,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // decorator changes nothing, which is what "no taste" looks like on screen.
             // Contract reminder: cells are recycled, so a decorator must reset whatever it sets.
             Personality.DECORATOR.decorate(avh.icon, avh.label, app);
+            Wobble.pin(avh.icon, app.getPackageName().hashCode());
 
             avh.itemView.setOnClickListener(v -> launchApp(context, app));
 

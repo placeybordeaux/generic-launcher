@@ -1240,6 +1240,7 @@ public class HomescreenView extends FrameLayout {
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(badge);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        Wobble.pin(icon, item.getPackageName().hashCode());
         outer.addView(icon, new LinearLayout.LayoutParams(dp(52), dp(52)));
 
         TextView label = new TextView(getContext());
@@ -1420,6 +1421,7 @@ public class HomescreenView extends FrameLayout {
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         // The dock has no label under the icon, so this is the only name a screen reader gets.
         icon.setContentDescription(info.getLabel());
+        Wobble.pin(icon, item.getPackageName().hashCode());
         icon.setOnClickListener(v -> {
             if (appClickListener != null) appClickListener.onAppClick(item.getPackageName());
         });
@@ -3286,6 +3288,7 @@ public class HomescreenView extends FrameLayout {
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(badge);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        Wobble.pin(icon, pkg.hashCode());
         cell.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
 
         TextView lbl = new TextView(getContext());

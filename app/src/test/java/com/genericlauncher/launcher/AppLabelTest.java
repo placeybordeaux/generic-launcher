@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 public class AppLabelTest {
 
     /** The base name every variant's label is built from. */
-    private static final String BASE = "Launcher";
+    private static final String BASE = "Wobble";
     /** The debug build type's contribution — see app/build.gradle's `buildTag`. */
     private static final String BUILD_TAG = " Debug";
     /** The flavour that carries no identity of its own; see PlainPersonalityTest. */

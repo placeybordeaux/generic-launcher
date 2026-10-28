@@ -20,4 +20,7 @@
       action needs a stable, app-owned id, and this is it.
     -->
     <item name="action_clear_search" type="id" />
+
+    <!-- Wobble: the Pendulum hanging off each pinned icon view. -->
+    <item name="wobble_pendulum" type="id" />
 </resources>

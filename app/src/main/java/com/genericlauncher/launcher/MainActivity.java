@@ -547,6 +547,8 @@ public class MainActivity extends AppCompatActivity {
             // Before the firstResume early-return below — badge animation must restart on every
             // resume, not just the ones that reload apps.
             BadgeAnimator.resume();
+            // Same reason: the icons hang from their pins on every resume, first one included.
+            Wobble.resume(this);
             // The initial load happens in onCreate; the package receiver keeps data fresh. Only
             // reload here if Usage Access changed (e.g. the user just granted it from Settings).
             boolean ua = UsageStatsHelper.hasAccess(this);
@@ -563,6 +565,7 @@ public class MainActivity extends AppCompatActivity {
         // Hard-stop the shared badge frame loop so a backgrounded launcher burns no frames.
         // Registrations survive, so onResume picks straight back up.
         BadgeAnimator.pause();
+        Wobble.pause();
     }
 
     @Override

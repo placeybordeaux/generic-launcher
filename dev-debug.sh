@@ -18,7 +18,7 @@
 #   ./dev-debug.sh version       show installed vs. local HEAD (are they the same build?)
 #
 # Every subcommand but build talks to the plain debug install; LAUNCHER_PKG aims them elsewhere,
-# e.g. LAUNCHER_PKG=com.genericlauncher.launcher.color.debug ./dev-debug.sh crash
+# e.g. LAUNCHER_PKG=com.genericlauncher.wobble.color.debug ./dev-debug.sh crash
 #
 # Requires: adb on PATH (or ANDROID_HOME/ANDROID_SDK_ROOT set).
 # ============================================================
@@ -26,7 +26,7 @@ set -uo pipefail
 
 # The debug install, not the bare applicationId: debug builds carry a ".debug" suffix (see
 # app/build.gradle), so the bare id is a package nothing here ever installs.
-PKG="${LAUNCHER_PKG:-com.genericlauncher.launcher.debug}"
+PKG="${LAUNCHER_PKG:-com.genericlauncher.wobble.debug}"
 # applicationId != Java namespace, so the component needs the full class name.
 ACT="$PKG/com.genericlauncher.launcher.MainActivity"
 HERE="$(cd "$(dirname "$0")" && pwd)"
