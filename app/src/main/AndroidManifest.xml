@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Package visibility: enough to enumerate launchable apps via LauncherApps.
+         Deliberately NOT QUERY_ALL_PACKAGES — that is a restricted permission on
+         Google Play requiring a declaration/review. Once set as the default HOME
+         app the system grants broad visibility automatically anyway. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <!-- Other home apps. Without this, package visibility hides every other launcher from
+             resolveActivity(HOME), which then returns the only candidate it can see: this app,
+             and DefaultLauncherHelper.isDefault says "default" when it is not. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
+    <!-- Uninstall from the home screen. Since API 26 the system silently drops an
+         ACTION_DELETE request unless the caller holds this permission: the installer
+         activity starts and finishes immediately, so the flow looks like it does nothing.
+         Normal protection level — granted at install, no runtime prompt. -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
+    <!-- Usage-sorted mode. Special access granted by the user via "Usage access" settings. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <!-- No uses-permission for BIND_NOTIFICATION_LISTENER_SERVICE: it is signature-level and
+         is never granted to a third-party app, so declaring it only inflates the permission
+         surface. What actually gates the listener is the android:permission attribute on the
+         NotificationDotsService declaration below, which stops arbitrary apps binding it.
+         Access itself is granted by the user in "Notification access" settings. -->
+
+    <!-- allowBackup=false: Auto Backup would capture homescreen.json whose widget IDs are
+         device-local and break on restore. The Settings export/import flow (which skips
+         widget IDs) is the supported backup path. -->
+    <application
+        android:name=".LauncherApp"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="${appName}${buildTag}"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GenericLauncher">
+
+        <!-- Tablet/foldable opt-out. From targetSdk 36, Android 16 ignores an activity's
+             screenOrientation on sw>=600dp screens, so the "nosensor" pins below stop pinning
+             anything on a large screen. This is a single-activity launcher that declares no
+             configChanges: a rotation recreates MainActivity, dropping an in-flight drag and
+             re-inflating every hosted widget. A one-release grace: Android stops honouring it at
+             targetSdk 37, when the real fix is handling configuration changes in-activity. -->
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true" />
+
+        <!-- Notification listener service (Phase D). Dormant when access is not granted. -->
+        <service
+            android:name=".NotificationDotsService"
+            android:label="${appName}${buildTag} notifications"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- screenOrientation="nosensor": pin to the device's natural orientation and ignore
+             the rotation sensor. Standard launcher behaviour — and because this is a single
+             activity, it also spares the drawer and widget picker a configuration change that
+             would rebuild every view, dropping in-flight drags and re-inflating hosted widgets.
+             "nosensor" rather than "portrait" so a tablet keeps its natural landscape. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="nosensor">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Settings. exported=false and no intent filter: reachable only from the gear
+             button. A separate activity rather than a panel inside MainActivity because the
+             launcher is the HOME app — pressing Home with an in-activity panel open re-enters
+             MainActivity through onNewIntent and the teardown tangles with the drawer's and
+             the widget picker's. -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="${appName}${buildTag} settings"
+            android:screenOrientation="nosensor" />
+    </application>
+</manifest>

@@ -1,0 +1,75 @@
+plugins {
+    // com.android.test, not com.android.application: this module produces an instrumentation
+    // APK that drives :app as a separate process. Measuring from inside the app's own process
+    // (a normal androidTest) would have the measurement compete with the thing being measured.
+    id 'com.android.test'
+    // See the note in the root build.gradle: Kotlin is confined to this module.
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.genericlauncher.launcher.macrobenchmark'
+    compileSdk 35
+    // Must match the nix SDK exactly — see the same note in app/build.gradle.
+    buildToolsVersion "35.0.0"
+
+    defaultConfig {
+        // Higher than :app's minSdk 26 on purpose. FrameTimingMetric reads frame data from
+        // Perfetto, which needs API 29+; below that the jank numbers are silently unavailable
+        // rather than wrong, which is worse. The benchmark suite is a developer tool run on one
+        // known device, so there is no reason to support the floor the app itself supports.
+        minSdk 29
+        targetSdk 35
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // :app carries a `personality` flavour dimension and this module does not, so without
+        // this AGP cannot decide which variant of the app to measure and fails to resolve the
+        // dependency at all. Pinned to `plain` deliberately: the perf baseline describes the
+        // taste-free build, which is the one whose numbers are the base's to defend. Measuring a
+        // personality means measuring that fork's own taste — retarget this line and re-baseline
+        // if that is what you want.
+        missingDimensionStrategy 'personality', 'plain'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildTypes {
+        // Mirrors app/build.gradle's `benchmark` type. The instrumentation APK itself is
+        // debuggable — only the measured app must not be.
+        benchmark {
+            debuggable true
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+        }
+    }
+
+    targetProjectPath = ':app'
+    // Self-instrumenting: the test APK does not instrument the target process, so :app starts
+    // as a clean, untouched process on every measured launch. Required for StartupMode.COLD to
+    // mean anything.
+    experimentalProperties["android.experimental.self-instrumenting"] = true
+}
+
+dependencies {
+    implementation 'androidx.test.ext:junit:1.2.1'
+    implementation 'androidx.test.uiautomator:uiautomator:2.3.0'
+    // 1.4.x, not 1.3.x: on API 33+ the older release still routes through a
+    // GrantPermissionRule for WRITE_EXTERNAL_STORAGE, which fails outright on devices whose
+    // OEM has taken GRANT_RUNTIME_PERMISSIONS away from the adb shell (ColorOS/OxygenOS do).
+    implementation 'androidx.benchmark:benchmark-macro-junit4:1.4.1'
+}
+
+// Only the benchmark variant is meaningful; suppress the rest so `gradle tasks` and IDE sync
+// do not offer debug/release variants that cannot run.
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        variant.enable = variant.buildType == 'benchmark'
+    }
+}

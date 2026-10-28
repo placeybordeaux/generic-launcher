@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Force the dark Material theme regardless of system day/night setting.
+         Theme.MaterialComponents.NoActionBar is the dark (non-adaptive) variant;
+         it sets android:alertDialogTheme + materialAlertDialogTheme to dark Material
+         styles so every AlertDialog and PopupMenu in the app renders with a dark
+         surface + rounded corners independent of the device's light/dark toggle. -->
+    <style name="Theme.GenericLauncher" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:statusBarColor">#121212</item>
+        <item name="android:navigationBarColor">#121212</item>
+        <!--
+            windowBackground is transparent so the system wallpaper can show through.
+            All non-HOME modes restore an opaque background on the root layout in
+            MainActivity.renderMode(), so they look identical to the pre-wallpaper build.
+        -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowShowWallpaper">true</item>
+    </style>
+</resources>

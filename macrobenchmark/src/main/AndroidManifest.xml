@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Lets the instrumentation see and drive com.genericlauncher.launcher.benchmark. Without it,
+      package-visibility filtering on API 30+ makes UiAutomator's package lookups return null
+      and every benchmark fails with a confusing "process not found".
+    -->
+    <queries>
+        <package android:name="com.genericlauncher.launcher.benchmark" />
+    </queries>
+
+</manifest>

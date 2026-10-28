@@ -1,0 +1,25 @@
+// Lift-out settings. Inert while this directory lives inside the launcher it was extracted
+// from — that build reaches straight into `app/` via a projectDir override and never makes
+// `generic-launcher/` a Gradle project, so this file is not read. Moving the directory out to
+// its own repo makes it the root settings, and the module builds unchanged.
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// namespace, applicationId and rootProject.name all agree — see app/build.gradle.
+rootProject.name = "generic-launcher"
+include ':app'
+// Device-only performance suite. Builds and runs solely via ./perf.sh, so a machine with no
+// phone attached is unaffected by its presence.
+include ':macrobenchmark'

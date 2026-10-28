@@ -1,0 +1,212 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Short git commit hash for the current HEAD, so every build is uniquely identifiable.
+// Falls back to "nogit" if git is unavailable (e.g. building from a source archive).
+def gitHash = { ->
+    try {
+        def out = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = out
+            ignoreExitValue = true
+        }
+        def h = out.toString().trim()
+        return h.isEmpty() ? "nogit" : h
+    } catch (Exception ignored) {
+        return "nogit"
+    }
+}()
+
+android {
+    // namespace, applicationId and rootProject.name all agree, on purpose. The launcher this
+    // base was extracted from carries a mismatch between the three (a scar from its own rename);
+    // starting coherent means a fork renaming for its own identity has one consistent thing to
+    // rename rather than three inconsistent ones.
+    namespace 'com.genericlauncher.launcher'
+    compileSdk 36
+    // Must match the nix SDK exactly — AGP's default (34.0.0) isn't installed and
+    // the store path is read-only, so auto-install fails.
+    buildToolsVersion "35.0.0"
+
+    defaultConfig {
+        applicationId "com.genericlauncher.launcher"
+        // 29, not 26. UsageStatsHelper.hasAccess calls AppOpsManager.unsafeCheckOpNoThrow, an
+        // API 29 method, on every launch — so the app crashed at startup on every Android 8-9
+        // device, and nothing noticed: Robolectric is pinned to 33 and the test phone is 36.
+        // Declaring a floor nobody has tested is the risk; the floor now says what is true.
+        minSdk 29
+        // 36 switches predictive back on by default: onBackPressed() is never called, which is
+        // why Back goes through MainActivity.registerBackHandler.
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "GIT_HASH", "\"${gitHash}\""
+        // The visible label, in two halves so several installs are tellable apart in the app
+        // drawer, the home-app picker and the notification-access list. Two keys rather than
+        // one because a build type's `manifestPlaceholders` map is merged into the flavour's
+        // key by key, with the build type winning — so a single `appLabel` set by both means
+        // the flavour's value is silently discarded, and `colorDebug` installs beside
+        // `plainDebug` under the identical name. The flavour owns `appName`, the build type
+        // owns `buildTag`, they never collide, and the manifest concatenates them.
+        manifestPlaceholders = [appName: "Launcher", buildTag: ""]
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    // The drawer seam and its strategies live in the repo-root `src/` tree, outside this module,
+    // and are compiled into it from there. That is not tidiness — it is the guard that keeps the
+    // seam framework-free. `SeamCheck` compiles exactly this tree with a bare `javac` and no
+    // Android SDK on the classpath, so the moment a strategy reaches for an `android.*` type the
+    // pure-JVM check stops compiling and says so. Kept as one copy rather than two so the code
+    // the check verifies is literally the code that ships.
+    sourceSets {
+        main {
+            java.srcDirs += ['../src']
+        }
+        // The colour example's strategy and classifier are pure Java too, and live in their own
+        // root tree for the same reason: `SeamCheck` compiles them with a bare javac, so a
+        // personality's ordering logic stays verifiable with no SDK and no device. They are added
+        // to the `color` flavour only — the taste-free build ships no colour code at all.
+        color {
+            java.srcDirs += ['../example']
+        }
+    }
+
+    // One flavour per personality. `Personality` — the file a fork edits — is the only class
+    // contributed by a flavour source set; everything else is shared spine. Two flavours cannot
+    // both contribute the same class, so "a personality is one file" stops being a claim in a
+    // README and becomes something the build fails to violate.
+    flavorDimensions += "personality"
+    productFlavors {
+        // The taste-free default: A–Z drawer, no background of its own, red badges.
+        plain {
+            dimension "personality"
+            isDefault = true
+        }
+
+        // The worked example: apps sorted into rainbow sections — the identity this base was
+        // extracted from, re-added entirely through the seam. Its whole implementation is
+        // src/color/**; it edits, overrides and subclasses nothing in src/main.
+        //
+        // Its own applicationId so it installs beside the plain build rather than over it, which
+        // is what lets one checkout produce the side-by-side screenshot — and, as everywhere else
+        // here, stops a test build from inheriting a daily driver's home screen and widget IDs.
+        color {
+            dimension "personality"
+            applicationIdSuffix ".color"
+            versionNameSuffix "-color"
+            manifestPlaceholders = [appName: "Launcher Color"]
+        }
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            // One forked JVM runs every class, and Gradle's default 512 MB test-worker heap ran
+            // out at ~1150 Robolectric tests upstream with no failing test named.
+            all { maxHeapSize = "2g" }
+        }
+    }
+
+    // Release signing: reads ../signing/keystore.properties (gitignored). Absent the file,
+    // release builds fall back to unsigned so CI/other machines still compile.
+    def keystoreProps = new Properties()
+    def keystorePropsFile = file('../signing/keystore.properties')
+    if (keystorePropsFile.exists()) {
+        keystorePropsFile.withInputStream { keystoreProps.load(it) }
+    }
+
+    signingConfigs {
+        if (keystorePropsFile.exists()) {
+            release {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            // The debug build is a separate app from any store build, permanently. This app is a
+            // launcher: sharing an applicationId would mean test builds share the daily driver's
+            // homescreen.json, its widget IDs and its default-home role, so a bad build takes the
+            // real home screen down with it.
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            manifestPlaceholders = [buildTag: " Debug"]
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+
+        // The build the perf harness measures: compiled exactly like the shipping build, because
+        // measuring `debug` would measure a binary nobody ships (no R8, different ART compilation,
+        // StrictMode active). Profileability comes from src/benchmark/AndroidManifest.xml rather
+        // than `debuggable true`, which would not be JIT/AOT-representative.
+        benchmark {
+            initWith buildTypes.release
+            signingConfig signingConfigs.debug
+            applicationIdSuffix ".benchmark"
+            versionNameSuffix "-benchmark"
+            manifestPlaceholders = [buildTag: " Bench"]
+            debuggable false
+            matchingFallbacks = ['release']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Lint gates the build. Upstream, the lintVital pass release builds get for free does not
+    // include NewApi — which is how a call that crashes every Android 8-9 device at startup sat
+    // in a "passing" tree for months. Errors fail the build; warnings are reported but do not.
+    // No baseline file on purpose: a baseline is a list of errors nobody has to look at.
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+        warningsAsErrors false
+        // Only :app's own sources. The other module is the device-only benchmark harness.
+        checkDependencies false
+    }
+}
+
+// Product flavours rename the unit-test task to `test<Flavour>DebugUnitTest`, which would make the
+// documented gate — `./gradlew assembleDebug testDebugUnitTest` — silently skip this module: Gradle
+// runs a name across every project that has it and only errors when *no* project does, and the
+// launcher this was extracted from still supplies the name. The run would go green having tested
+// nothing here. This alias keeps the documented command honest, and picks up new flavours as they
+// are added because `matching` returns a live collection.
+tasks.register('testDebugUnitTest') {
+    description = 'Runs the debug unit tests of every personality flavour.'
+    group = 'verification'
+    dependsOn tasks.matching { it.name ==~ /^test[A-Z]\w*DebugUnitTest$/ }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.palette:palette:1.0.0'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    // Machinery the perf harness needs to drive ART compilation state between iterations.
+    // Deliberately `implementation` (all variants) so the measured binary matches the shipped one.
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation 'androidx.test:core:1.5.0'
+}

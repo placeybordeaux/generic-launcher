@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Benchmark-variant manifest overlay. Merged only into the `benchmark` build type.
+
+  <profileable shell="true"> is what lets the macrobenchmark instrumentation attach Perfetto and
+  read the Perf trace sections out of a non-debuggable build. It is the whole reason a separate
+  build type exists: `debuggable true` would also permit profiling, but a debuggable app is
+  interpreted/JIT-compiled differently from what ships, so its startup numbers track nothing.
+
+  Deliberately NOT added to the release variant. Profileable release builds are permitted by
+  Play and are handy for profiling the shipping binary on-device, but that is a change to what
+  users install and is not required for benchmarking — so it stays opt-in and out of scope here.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <profileable
+            android:shell="true"
+            tools:targetApi="29"
+            xmlns:tools="http://schemas.android.com/tools" />
+    </application>
+</manifest>

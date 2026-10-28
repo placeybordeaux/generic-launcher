@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      HomescreenView is created in code, not inflated, so it has no id of its own. This gives it
+      one purely so the macrobenchmark suite has a positive "the home screen is built" signal to
+      wait on.
+
+      That signal has to be positive. The readiness check used to wait for the progress spinner
+      to disappear, which silently became a no-op once the two-phase load stopped showing a
+      spinner on the home screen at all — the wait returned instantly and benchmarks began
+      swiping before the swipe listener was wired. Waiting for something to exist cannot fail
+      that way.
+    -->
+    <item name="homescreen_view" type="id" />
+
+    <!--
+      The id of the search box's "Clear search" accessibility action. The ✕ that clears the query
+      is a compound drawable on the EditText, so it has no view and therefore no node of its own:
+      a screen-reader or switch-access user could not reach it (QA findings R3 / B5). A custom
+      action needs a stable, app-owned id, and this is it.
+    -->
+    <item name="action_clear_search" type="id" />
+</resources>

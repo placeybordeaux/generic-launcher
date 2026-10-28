@@ -1,0 +1,10 @@
+plugins {
+    id 'com.android.application' version '8.10.1' apply false
+    id 'com.android.test' version '8.7.3' apply false
+    // Applied ONLY by :macrobenchmark. The app itself stays pure Java — this is here because
+    // androidx.benchmark is a Kotlin-first API (default arguments, Unit-returning lambdas,
+    // @ExperimentalMetricApi opt-ins) that is painful and fragile to drive from Java. The
+    // Kotlin stdlib ships in the dev-only instrumentation APK, never in the app.
+    // Version matches the Kotlin bundled with Gradle 8.11.1.
+    id 'org.jetbrains.kotlin.android' version '2.0.21' apply false
+}

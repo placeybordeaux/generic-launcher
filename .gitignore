@@ -1,0 +1,11 @@
+# Pure-JVM SeamCheck output
+out/
+# Gradle
+build/
+.gradle/
+local.properties
+# Release signing (see signing/keystore.properties.example)
+signing/keystore.properties
+# Per-run benchmark output. perf/baseline.json is deliberately NOT ignored — it is the
+# recorded "before", and the diff in review is the entire regression mechanism.
+perf/latest.json
