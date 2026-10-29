@@ -1,5 +1,7 @@
 # Generic Launcher
 
+> *This README was written by Claude (Anthropic's AI model).*
+
 An Android home-screen launcher that does the expected things — home screen with widgets and
 folders, an app drawer with search, notification badges — and is built to be **forked and
 personalized**, mostly by editing one file.
@@ -9,6 +11,10 @@ point `Personality.DRAWER` at a different strategy and the whole drawer re-sorts
 `Background`, a `DrawerItemDecorator` or a `BadgeAppearance` and it looks different. Everything a
 fork is likely to want to change sits behind five seams, listed with an intent→file recipe table
 in **[`docs/SEAM.md`](docs/SEAM.md) — start there.**
+
+It was extracted from [Hue-istic](https://hueistic.com), a launcher that sorts your apps by the
+colour of their icons. The colour identity was taken out of the default and put back as the
+worked example behind the seam — the `color` flavour below.
 
 ## Branches
 
@@ -103,3 +109,7 @@ CLAUDE.md                         toolchain traps, on-device findings, invariant
 A personality is **one file** — that is enforced, not conventional: two product flavours cannot
 contribute the same class, so a personality that tried to override a spine class would fail to
 compile rather than quietly succeed.
+
+## License
+
+[MIT](LICENSE).
